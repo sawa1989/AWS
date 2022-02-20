@@ -1,0 +1,148 @@
+# 샵은 주석 
+# --- 문서의 시작을 나타냄 ( 선택사항 )
+AWSTemplateFormatVersion: 2010-09-09
+Description: Make a VPC 2
+
+# 생성될 AWS 자원 나열 
+# 주의점 
+# yaml은 key: value로 표현 :다음에는 무조건 공백 필요
+# :사용시 " " or ' ' 필수
+
+# type 종류 
+# int_type: 1
+# string_type: "1"
+# boolean_type: true or false, yes or no
+
+# object 표현 방법
+# key:
+#   key: value
+#   key: value
+# key: {
+#   key: value,
+#   key: value
+# }
+
+# list 표현 방법
+# key:
+#   - item
+#   - item
+# key: [
+#   item, item
+# ]
+
+# text표현
+# | 줄바꿈 O
+# |- 마지막 줄바꿈 X
+# > 중간에 들어간 빈줄을 제외
+
+
+# 생성될 AWS 자원 나열 
+Resources:
+  ToturialVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.0.0.0/16
+      EnableDnsHostnames: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ToturialVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.0.0/24
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.1.0/24
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+
+  PublicSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.2.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
+
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.3.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ToturialVPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet01
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet02
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ToturialVPC
+
+  PrivateSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet01
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet02
+      RouteTableId: !Ref PrivateRouteTable
+# 템플릿 실행 후 만들어진 자원 결과 값 
+Outputs:
+  VPC:
+    Description: Toturial VPC ID
+    Value: !Ref ToturialVPC
+  AZ1:
+    Description: Availability Zone 1
+    Value: !GetAtt
+      - PublicSubnet01
+      - AvailabilityZone
+  AZ2:
+    Description: Availability Zone 2
+    Value: !GetAtt
+      - PublicSubnet02
+      - AvailabilityZone
+
+# ... 문서의 끝을 나타냄 ( 선택사항 )
